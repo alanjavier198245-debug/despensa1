@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1B263B">
+<title>Despensa Verónica</title>
+<style>
+:root{--negro:#0D1B2A;--azul:#1B263B;--celeste:#415A77;--celeste-claro:#778DA9;--blanco:#E0E1DD;--verde:#2A9D8F}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:var(--negro);color:var(--blanco);height:100vh}
+.login-container{width:100%;height:100%;display:flex;justify-content:center;align-items:center;padding:20px}
+.login-box{background:var(--azul);padding:30px;border-radius:12px;width:100%;max-width:350px}
+.login-box h2{text-align:center;color:var(--celeste-claro);margin-bottom:20px}
+.login-box input{width:100%;padding:14px;margin:10px 0;background:var(--negro);border:1px solid var(--celeste);color:var(--blanco);border-radius:6px;font-size:16px}
+.login-box button{width:100%;padding:14px;background:var(--celeste);color:var(--blanco);border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:16px}
+.app-container{display:none;width:100%;height:100%;flex-direction:column}
+.header{background:var(--azul);padding:15px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--celeste)}
+.header h2{color:var(--celeste-claro);font-size:18px}
+.header button{background:#9B1D20;color:var(--blanco);border:none;padding:8px 12px;border-radius:6px}
+.nav{background:var(--azul);display:flex;overflow-x:auto;border-bottom:2px solid var(--celeste)}
+.nav button{flex:1;min-width:120px;background:none;border:none;color:var(--blanco);padding:15px 10px;font-size:14px;cursor:pointer;border-bottom:3px solid transparent}
+.nav button.active{background:var(--celeste);border-bottom:3px solid var(--celeste-claro)}
+.main-content{flex:1;padding:15px;overflow-y:auto}
+.tab{display:none}.tab.active{display:block}
+h3{color:var(--celeste-claro);border-bottom:2px solid var(--celeste);padding-bottom:10px;margin-bottom:15px}
+.card{background:var(--azul);padding:15px;border-radius:10px;margin-bottom:15px}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(2,1fr)}}
+input,select{padding:12px;background:var(--negro);border:1px solid var(--celeste);color:var(--blanco);border-radius:6px;width:100%;font-size:16px}
+button.action{background:var(--celeste);color:var(--blanco);border:none;padding:14px 20px;border-radius:6px;cursor:pointer;font-weight:bold;margin:5px 0;width:100%;font-size:16px}
+button.verde{background:var(--verde)}
+.tabla-contenedor{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px}
+th{background:var(--celeste);padding:10px;text-align:left}
+td{background:var(--azul);padding:10px;border-bottom:1px solid var(--celeste)}
+.alerta-stock{color:#FFC300;font-weight:bold}
+.resultado-busqueda{background:var(--azul);border:1px solid var(--celeste);max-height:200px;overflow-y:auto}
+.item-busqueda{padding:12px;cursor:pointer}.item-busqueda:hover{background:var(--celeste)}
+#carrito li{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--celeste);font-size:14px}
+.total-box{font-size:22px;color:var(--verde);font-weight:bold;text-align:right;margin:15px 0}
+.ganancia{color:var(--verde);font-weight:bold}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-container">
+    <div class="login-box">
+        <h2>🏪 Despensa Verónica</h2>
+        <input type="text" id="user" placeholder="Usuario">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button onclick="login()">Ingresar</button>
+    </div>
+</div>
+
+<div id="appScreen" class="app-container">
+    <div class="header"><h2>🏪 DESPENSA VERÓNICA</h2><button onclick="logout()">Salir</button></div>
+    <div class="nav">
+        <button onclick="showTab('venta', this)" class="active">🛒 Venta</button>
+        <button onclick="showTab('compra', this)">📥 Compras</button>
+        <button onclick="showTab('inventario', this)">📊 Inventario</button>
+        <button onclick="showTab('reporte', this)">💰 Reportes</button>
+        <button onclick="showTab('config', this)">⚙️ Config</button>
+    </div>
+    <div class="main-content">
+        <div id="venta" class="tab active"><h3>🛒 Punto de Venta</h3><div class="card"><input type="text" id="buscarProd" placeholder="Escribe para buscar producto..." onkeyup="buscarProducto()"><div id="resultadoBusqueda" class="resultado-busqueda"></div><div class="grid" style="margin-top:15px;"><input type="text" id="prodSel" placeholder="Producto Seleccionado" readonly><input type="number" id="precioSel" placeholder="Precio Unitario Gs" onkeyup="calcularPorCantidad()"><input type="number" id="cantSel" placeholder="Cantidad" step="any" onkeyup="calcularPorCantidad()"><input type="number" id="montoSel" placeholder="O poner Monto Gs" step="any" onkeyup="calcularPorMonto()"><input type="text" id="subSel" placeholder="Subtotal Gs" readonly></div><button class="action verde" onclick="agregarAlCarrito()">+ Agregar al Carrito</button></div><div class="card"><h4>Carrito</h4><ul id="carrito"></ul><div class="total-box">Total: Gs <span id="totalVenta">0</span></div><button class="action verde" onclick="finalizarVenta()">FINALIZAR VENTA</button><button class="action" onclick="nuevaVenta()">NUEVO</button></div></div>
+
+        <div id="compra" class="tab"><h3>📥 Registrar Compra / Gasto</h3><div class="card"><h4>Ingreso de Mercadería a Stock</h4><div class="grid"><input type="text" id="prodCompra" placeholder="Nombre Producto"><input type="number" id="cantCompra" placeholder="Cantidad" step="any"><input type="number" id="costoCompra" placeholder="Precio Compra Gs"><input type="number" id="precioVentaCompra" placeholder="Precio Venta Gs"></div><button class="action" onclick="registrarCompra()">Sumar a Stock y Guardar Gasto</button></div><div class="card"><h4>Registrar Gasto Vario</h4><div class="grid"><input type="text" id="descGasto" placeholder="Descripción: Luz, Alquiler, etc"><input type="number" id="montoGasto" placeholder="Monto Gs"></div><button class="action" onclick="registrarGasto()">Guardar Gasto</button></div></div>
+
+        <div id="inventario" class="tab"><h3>📊 Inventario y Ganancias</h3><div class="card"><h4>Stock Valorizado</h4><input type="text" id="filtroStock" placeholder="Filtrar producto..." onkeyup="cargarInventario()"><div class="tabla-contenedor"><table id="tablaInventario"></table></div></div><div class="card"><h4>Historial de Movimientos</h4><input type="text" id="filtroHistorial" placeholder="Filtrar por producto..." onkeyup="cargarHistorial()"><div class="tabla-contenedor"><table id="tablaHistorial"></table></div></div></div>
+
+        <div id="reporte" class="tab"><h3>💰 Reportes y Ganancias</h3><div class="card grid"><div><h4>Ventas Hoy</h4><p>Gs <span id="ventaHoy">0</span></p></div><div><h4>Gastos Hoy</h4><p>Gs <span id="gastoHoy">0</span></p></div><div><h4>Ganancia Hoy</h4><p class="ganancia">Gs <span id="gananciaHoy">0</span></p></div></div><div class="card"><button class="action" onclick="exportarDatos()">📥 Exportar Copia de Seguridad</button></div></div>
+
+        <div id="config" class="tab"><h3>⚙️ Configuración</h3><div class="card"><h4>Cambiar Usuario y Contraseña</h4><input type="text" id="newUser" placeholder="Nuevo Usuario"><input type="password" id="newPass" placeholder="Nueva Contraseña"><button class="action" onclick="cambiarLogin()">Guardar Acceso</button></div><div class="card"><h4>Cambiar Precio de Producto</h4><select id="selectProdPrecio"></select><input type="number" id="newPrecio" placeholder="Nuevo Precio Venta Gs"><button class="action" onclick="cambiarPrecio()">Actualizar Precio Venta</button></div></div>
+    </div>
+</div>
+
+<script>
+let db=JSON.parse(localStorage.getItem('db_despensa_gs_v2'))||{usuario:'admin',password:'1234',productos:[],ventas:[],compras:[],gastos:[]};
+let carrito=[];let productoSeleccionado=null;
+
+function formatoGs(num){ return new Intl.NumberFormat('es-PY').format(Math.round(num)); }
+function limpiarNum(valor){ return parseFloat(valor) || 0; }
+
+function guardarDB(){localStorage.setItem('db_despensa_gs_v2',JSON.stringify(db))}
+function login(){
+    let u=document.getElementById('user').value;
+    let p=document.getElementById('pass').value;
+    if(u==db.usuario && p==db.password){
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('appScreen').style.display='flex';
+        cargarTodo()
+    }else alert('Usuario o contraseña incorrectos. Usa: admin / 1234')
+}
+function logout(){document.getElementById('appScreen').style.display='none';document.getElementById('loginScreen').style.display='flex'}
+
+function showTab(tab, btn){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    btn.classList.add('active');
+    if(tab=='inventario')cargarInventario();
+    if(tab=='reporte')cargarReportes();
+    if(tab=='config')cargarSelectPrecios()
+}
+
+function buscarProducto(){let texto=document.getElementById('buscarProd').value.toLowerCase();let res=db.productos.filter(p=>p.nombre.toLowerCase().includes(texto));let html='';res.forEach(p=>{html+=`<div class="item-busqueda" onclick="seleccionarProducto('${p.nombre}')">${p.nombre} - Stock: ${formatoGs(p.stock)} - Venta: Gs ${formatoGs(p.precioVenta)}</div>`});document.getElementById('resultadoBusqueda').innerHTML=html}
+function seleccionarProducto(nombre){
+    productoSeleccionado=db.productos.find(p=>p.nombre==nombre);
+    document.getElementById('prodSel').value=productoSeleccionado.nombre;
+    document.getElementById('precioSel').value=productoSeleccionado.precioVenta;
+    document.getElementById('cantSel').value=1;
+    calcularPorCantidad();
+    document.getElementById('resultadoBusqueda').innerHTML='';document.getElementById('buscarProd').value=''
+}
+
+function calcularPorCantidad(){
+    let cant=limpiarNum(document.getElementById('cantSel').value);
+    let precio=limpiarNum(document.getElementById('precioSel').value);
+    let subtotal = cant*precio;
+    document.getElementById('subSel').value=formatoGs(subtotal);
+    document.getElementById('montoSel').value=subtotal;
+}
+
+function calcularPorMonto(){
+    let monto=limpiarNum(document.getElementById('montoSel').value);
+    let precio=limpiarNum(document.getElementById('precioSel').value);
+    if(precio>0){
+        let cant = monto / precio;
+        document.getElementById('cantSel').value = cant;
+        document.getElementById('subSel').value=formatoGs(monto);
+    }
+}
+
+function agregarAlCarrito(){
+    let nom=document.getElementById('prodSel').value;
+    let precio=limpiarNum(document.getElementById('precioSel').value);
+    let cant=limpiarNum(document.getElementById('cantSel').value);
+    let subtotal=limpiarNum(document.getElementById('montoSel').value);
+    
+    if(!nom || precio<=0 || cant<=0)return alert('Selecciona producto, precio y cantidad');
+
+    let prod=db.productos.find(p=>p.nombre==nom);
+    if(prod && prod.stock < cant)return alert('No hay suficiente stock');
+    if(prod) prod.stock -= cant;
+
+    // GUARDAMOS EL SUBTOTAL REAL, no precio*cantidad
+    carrito.push({nombre:nom,cantidad:cant,precioVenta:precio,subtotal:subtotal,precioCompra:prod?prod.precioCompra:0});
+    renderCarrito();limpiarCamposVenta()
+}
+
+function renderCarrito(){let html='';let total=0;carrito.forEach((item,i)=>{total+=item.subtotal;html+=`<li>${item.nombre} x${item.cantidad.toFixed(2)} @Gs ${formatoGs(item.precioVenta)} = Gs ${formatoGs(item.subtotal)} <button onclick="quitarItem(${i})">X</button></li>`});document.getElementById('carrito').innerHTML=html;document.getElementById('totalVenta').innerText=formatoGs(total)}
+function quitarItem(i){let item=carrito[i]; let prod=db.productos.find(p=>p.nombre==item.nombre); if(prod) prod.stock += item.cantidad; carrito.splice(i,1);renderCarrito()}
+
+function finalizarVenta(){
+    if(carrito.length==0)return alert('Carrito vacío');
+    let venta={fecha:new Date().toLocaleString(),items:JSON.parse(JSON.stringify(carrito)),total:carrito.reduce((a,b)=>a+b.subtotal,0)};
+    db.ventas.push(venta);
+    guardarDB();
+    alert('Venta registrada con éxito');
+    if(confirm('¿Enviar comprobante por WhatsApp?')){
+        enviarComprobante(venta);
+    }
+    nuevaVenta();
+}
+
+function enviarComprobante(venta){
+    let texto=`*DESPENSA VERÓNICA*\n*COMPROBANTE DE VENTA*\nFecha: ${venta.fecha}\n\n`;
+    venta.items.forEach(i=>{
+        texto+=`${i.nombre} x${i.cantidad.toFixed(2)} @Gs ${formatoGs(i.precioVenta)} = Gs ${formatoGs(i.subtotal)}\n`
+    });
+    texto+=`\n*TOTAL: Gs ${formatoGs(venta.total)}*\n\nGracias por su compra!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank')
+}
+
+function nuevaVenta(){carrito=[];renderCarrito();limpiarCamposVenta()}
+function limpiarCamposVenta(){document.getElementById('prodSel').value='';document.getElementById('precioSel').value='';document.getElementById('cantSel').value='';document.getElementById('montoSel').value='';document.getElementById('subSel').value='';productoSeleccionado=null}
+
+function registrarCompra(){
+    let nom=document.getElementById('prodCompra').value;
+    let cant=limpiarNum(document.getElementById('cantCompra').value);
+    let costo=limpiarNum(document.getElementById('costoCompra').value);
+    let precioVenta=limpiarNum(document.getElementById('precioVentaCompra').value);
+    if(!nom || cant<=0 || costo<=0 || precioVenta<=0) return alert('Completa todos los campos');
+
+    let prod=db.productos.find(p=>p.nombre==nom);
+    if(prod){
+        prod.stock+=cant;
+        prod.precioCompra=costo;
+        prod.precioVenta=precioVenta;
+    }else{
+        db.productos.push({nombre:nom,stock:cant,precioCompra:costo,precioVenta:precioVenta})
+    }
+    db.compras.push({fecha:new Date().toLocaleString(),producto:nom,cantidad:cant,costo:costo*cant,precioVenta:precioVenta});
+    db.gastos.push({fecha:new Date().toLocaleString(),desc:`Compra ${nom}`,monto:costo*cant});
+    guardarDB();alert('Compra registrada');document.getElementById('prodCompra').value='';document.getElementById('cantCompra').value='';document.getElementById('costoCompra').value='';document.getElementById('precioVentaCompra').value=''
+}
+
+function registrarGasto(){db.gastos.push({fecha:new Date().toLocaleString(),desc:document.getElementById('descGasto').value,monto:limpiarNum(document.getElementById('montoGasto').value)});guardarDB();alert('Gasto registrado')}
+
+function cargarInventario(){
+    let filtro=document.getElementById('filtroStock').value.toLowerCase();
+    let html='<tr><th>Producto</th><th>Stock</th><th>Costo</th><th>Venta</th><th>Valorizado</th></tr>';
+    let total=0;
+    db.productos.filter(p=>p.nombre.toLowerCase().includes(filtro)).forEach(p=>{
+        let valorizado=p.stock*p.precioCompra;
+        total+=valorizado;
+        html+=`<tr><td>${p.nombre}</td><td class="${p.stock<5?'alerta-stock':''}">${formatoGs(p.stock)}</td><td>Gs ${formatoGs(p.precioCompra)}</td><td>Gs ${formatoGs(p.precioVenta)}</td><td>Gs ${formatoGs(valorizado)}</td></tr>`
+    });
+    html+=`<tr><th colspan="4">TOTAL STOCK</th><th>Gs ${formatoGs(total)}</th></tr>`;
+    document.getElementById('tablaInventario').innerHTML=html
+}
+
+function cargarHistorial(){
+    let filtro=document.getElementById('filtroHistorial').value.toLowerCase();
+    let html='<tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Monto</th></tr>';
+    [...db.ventas,...db.compras,...db.gastos].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).forEach(m=>{
+        let tipo=db.ventas.includes(m)?'Venta':db.compras.includes(m)?'Compra':'Gasto';
+        let detalle=m.items?m.items.map(i=>i.nombre).join(', '):m.producto||m.desc;
+        if(detalle.toLowerCase().includes(filtro))html+=`<tr><td>${m.fecha}</td><td>${tipo}</td><td>${detalle}</td><td>Gs ${formatoGs(m.total||m.costo||m.monto)}</td></tr>`
+    });
+    document.getElementById('tablaHistorial').innerHTML=html
+}
+
+function cargarReportes(){
+    let hoy=new Date().toLocaleDateString();
+    let ventasDelDia=db.ventas.filter(v=>v.fecha.includes(hoy));
+    let ventaHoy=ventasDelDia.reduce((a,b)=>a+b.total,0);
+
+    let costoVentas=0;
+    ventasDelDia.forEach(v=>{
+        v.items.forEach(i=>{
+            costoVentas += i.cantidad * (i.precioCompra||0);
+        })
+    });
+
+    let gastoHoy=db.gastos.filter(g=>g.fecha.includes(hoy)).reduce((a,b)=>a+b.monto,0);
+    let gananciaBruta = ventaHoy - costoVentas;
+    let gananciaNeta = gananciaBruta - gastoHoy;
+
+    document.getElementById('ventaHoy').innerText=formatoGs(ventaHoy);
+    document.getElementById('gastoHoy').innerText=formatoGs(gastoHoy);
+    document.getElementById('gananciaHoy').innerText=formatoGs(gananciaNeta)
+}
+
+function cambiarLogin(){db.usuario=document.getElementById('newUser').value;db.password=document.getElementById('newPass').value;guardarDB();alert('Acceso actualizado')}
+function cargarSelectPrecios(){let html='';db.productos.forEach(p=>{html+=`<option>${p.nombre}</option>`});document.getElementById('selectProdPrecio').innerHTML=html}
+function cambiarPrecio(){let prod=db.productos.find(p=>p.nombre==document.getElementById('selectProdPrecio').value);prod.precioVenta=limpiarNum(document.getElementById('newPrecio').value);guardarDB();alert('Precio actualizado')}
+function exportarDatos(){let data="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(db));let a=document.createElement('a');a.href=data;a.download='copia_seguridad_veronica.json';a.click()}
+function cargarTodo(){cargarInventario();cargarReportes()}
+</script>
+</body>
+</html>
